@@ -1,0 +1,36 @@
+# Tyler Travis A01519795
+# Tyler Tolman A01309497
+
+
+
+# sum_list
+# int sum_list(list_ptr ls)
+# {
+#   int val = 0;
+#   while (ls) {
+#     val += ls->val;
+#     ls = ls->next;
+#   }
+#   return val;
+# }
+
+sum:
+  pushl %ebp
+  rrmovl %esp, %ebp
+  mrmovl 8(%ebp), %eax    # eax = ls
+  xorl %ebx, %ebx         # ebx = val = 0
+  andl %eax, %eax         # set condition code
+  je end
+
+loop:
+  mrmovl (%eax), %ecx     # ecx = ls->val
+  addl %eax, %ecx         # eax = eax + exc = val + ls->val
+  mrmovl 8(%eax), %eax    # eax = eax + 8 = ls = ls->next
+  andl %eax, %eax         # set condition code
+  je end
+  jmp loop
+
+end:
+  rrmovl %ebp, %esp
+  popl %ebp
+  ret
