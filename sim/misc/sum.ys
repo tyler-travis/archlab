@@ -14,23 +14,49 @@
 #   return val;
 # }
 
+.pos 0
+
+init:
+  irmovl Stack, %esp
+  irmovl Stack, %ebp
+  jmp Main
+
+.align 4
+ele1:
+  .long 0x00a
+  .long ele2
+ele2:
+  .long 0x0b0
+  .long ele3
+ele3:
+  .long 0xc00
+  .long 0
+
+Main:
+  irmovl ele1, %edx
+  pushl %edx
+  call sum
+  halt
+
 sum:
   pushl %ebp
   rrmovl %esp, %ebp
-  mrmovl 8(%ebp), %eax    # eax = ls
-  xorl %ebx, %ebx         # ebx = val = 0
-  andl %eax, %eax         # set condition code
+  mrmovl 8(%ebp), %ebx    # ebx = ls
+  irmovl $0, %eax         # eax = val = 0
+  andl %ebx, %ebx         # set condition code
   je end
 
 loop:
-  mrmovl (%eax), %ecx     # ecx = ls->val
-  addl %eax, %ecx         # eax = eax + exc = val + ls->val
-  mrmovl 8(%eax), %eax    # eax = eax + 8 = ls = ls->next
-  andl %eax, %eax         # set condition code
-  je end
-  jmp loop
+  mrmovl (%ebx), %ecx     # ecx = ls->val
+  addl %ecx, %eax         # eax = eax + ecx = val + ls->val
+  mrmovl 4(%ebx), %ebx    # ebx = ebx + 4 = ls = ls->next
+  andl %ebx, %ebx         # set condition code
+  jne loop
 
 end:
   rrmovl %ebp, %esp
   popl %ebp
   ret
+
+.pos 0x100
+Stack:
