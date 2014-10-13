@@ -1,0 +1,62 @@
+                      | # Tyler Travis A01519795
+                      | # Tyler Tolman A01307949
+                      | 
+                      | 
+                      | 
+                      | # sum_list
+                      | # int sum_list(list_ptr ls)
+                      | # {
+                      | #   int val = 0;
+                      | #   while (ls) {
+                      | #     val += ls->val;
+                      | #     ls = ls->next;
+                      | #   }
+                      | #   return val;
+                      | # }
+                      | 
+  0x000:              | .pos 0
+                      | 
+  0x000:              | init:
+  0x000: 308400010000 |   irmovl Stack, %esp
+  0x006: 308500010000 |   irmovl Stack, %ebp
+  0x00c: 702c000000   |   jmp Main
+                      | 
+  0x014:              | .align 4
+  0x014:              | ele1:
+  0x014: 0a000000     |   .long 0x00a
+  0x018: 1c000000     |   .long ele2
+  0x01c:              | ele2:
+  0x01c: b0000000     |   .long 0x0b0
+  0x020: 24000000     |   .long ele3
+  0x024:              | ele3:
+  0x024: 000c0000     |   .long 0xc00
+  0x028: 00000000     |   .long 0
+                      | 
+  0x02c:              | Main:
+  0x02c: 308214000000 |   irmovl ele1, %edx
+  0x032: a028         |   pushl %edx
+  0x034: 803a000000   |   call sum
+  0x039: 10           |   halt
+                      | 
+  0x03a:              | sum:
+  0x03a: a058         |   pushl %ebp
+  0x03c: 2045         |   rrmovl %esp, %ebp
+  0x03e: 503508000000 |   mrmovl 8(%ebp), %ebx    # ebx = ls
+  0x044: 308000000000 |   irmovl $0, %eax         # eax = val = 0
+  0x04a: 6233         |   andl %ebx, %ebx         # set condition code
+  0x04c: 7366000000   |   je end
+                      | 
+  0x051:              | loop:
+  0x051: 501300000000 |   mrmovl (%ebx), %ecx     # ecx = ls->val
+  0x057: 6010         |   addl %ecx, %eax         # eax = eax + ecx = val + ls->val
+  0x059: 503304000000 |   mrmovl 4(%ebx), %ebx    # ebx = ebx + 4 = ls = ls->next
+  0x05f: 6233         |   andl %ebx, %ebx         # set condition code
+  0x061: 7451000000   |   jne loop
+                      | 
+  0x066:              | end:
+  0x066: 2054         |   rrmovl %ebp, %esp
+  0x068: b058         |   popl %ebp
+  0x06a: 90           |   ret
+                      | 
+  0x100:              | .pos 0x100
+  0x100:              | Stack:
