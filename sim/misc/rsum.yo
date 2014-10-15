@@ -1,0 +1,59 @@
+                      | # Tyler Travis A01519795
+                      | # Tyler Tolman A01307949
+                      | 
+                      | 
+  0x000:              | .pos 0
+  0x000:              | init:
+  0x000: 308450010000 |   irmovl Stack, %esp
+  0x006: 308550010000 |   irmovl Stack, %ebp
+  0x00c: 702c000000   |   jmp Main
+                      | 
+  0x014:              | .align 4
+  0x014:              | ele1:
+  0x014: 0a000000     |   .long 0x00a
+  0x018: 1c000000     |   .long ele2
+  0x01c:              | ele2:
+  0x01c: b0000000     |   .long 0x0b0
+  0x020: 24000000     |   .long ele3
+  0x024:              | ele3:
+  0x024: 000c0000     |   .long 0xc00
+  0x028: 00000000     |   .long 0
+                      | 
+  0x02c:              | Main:
+  0x02c: 308314000000 |   irmovl ele1, %ebx   # ebx is the register for passing variables
+  0x032: 8038000000   |   call rsum_list
+  0x037: 10           |   halt
+                      | 
+                      | # int rsum_list(list_ptr ls)
+                      | # {
+                      |     # if (!ls)
+                      | 	# return 0;
+                      |     # else {
+                      | 	# int val = ls->val;
+                      | 	# int rest = rsum_list(ls->next);
+                      | 	# return val + rest;
+                      |     # }
+                      | # }
+  0x038:              | rsum_list:
+  0x038: a058         |   pushl %ebp
+  0x03a: 2045         |   rrmovl %esp, %ebp       # ebx = ls
+  0x03c: 6233         |   andl %ebx, %ebx         # set condition code
+  0x03e: 744e000000   |   jne recursion
+  0x043: 308000000000 |   irmovl $0, %eax         # set return condition
+  0x049: 7065000000   |   jmp end
+                      | 
+  0x04e:              | recursion:
+  0x04e: 501300000000 |   mrmovl (%ebx), %ecx     # ecx = ls->val
+  0x054: 503304000000 |   mrmovl 4(%ebx), %ebx    # ebx = ebx + 4 = ls = ls->next
+  0x05a: a018         |   pushl %ecx              # preserve the value of ecx
+  0x05c: 8038000000   |   call rsum_list
+  0x061: b018         |   popl %ecx               # revive ecx
+  0x063: 6010         |   addl %ecx, %eax         # eax = return value + ls->val
+                      | 
+  0x065:              | end:
+  0x065: 2054         |   rrmovl %ebp, %esp
+  0x067: b058         |   popl %ebp
+  0x069: 90           |   ret
+                      | 
+  0x150:              | .pos 0x150
+  0x150:              | Stack:

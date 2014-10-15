@@ -1,0 +1,59 @@
+# Tyler Travis A01519795
+# Tyler Tolman A01307949
+
+
+.pos 0
+init:
+  irmovl Stack, %esp
+  irmovl Stack, %ebp
+  jmp Main
+
+.align 4
+ele1:
+  .long 0x00a
+  .long ele2
+ele2:
+  .long 0x0b0
+  .long ele3
+ele3:
+  .long 0xc00
+  .long 0
+
+Main:
+  irmovl ele1, %ebx   # ebx is the register for passing variables
+  call rsum_list
+  halt
+
+# int rsum_list(list_ptr ls)
+# {
+    # if (!ls)
+	# return 0;
+    # else {
+	# int val = ls->val;
+	# int rest = rsum_list(ls->next);
+	# return val + rest;
+    # }
+# }
+rsum_list:
+  pushl %ebp
+  rrmovl %esp, %ebp       # ebx = ls
+  andl %ebx, %ebx         # set condition code
+  jne recursion
+  irmovl $0, %eax         # set return condition
+  jmp end
+
+recursion:
+  mrmovl (%ebx), %ecx     # ecx = ls->val
+  mrmovl 4(%ebx), %ebx    # ebx = ebx + 4 = ls = ls->next
+  pushl %ecx              # preserve the value of ecx
+  call rsum_list
+  popl %ecx               # revive ecx
+  addl %ecx, %eax         # eax = return value + ls->val
+
+end:
+  rrmovl %ebp, %esp
+  popl %ebp
+  ret
+
+.pos 0x150
+Stack:
