@@ -1,0 +1,84 @@
+# Tyler Travis A01519795
+# Tyler Tolman A01307949
+
+
+
+#int copy_block(int *src, int *dest, int len)
+#{
+    #int result = 0;
+    #while (len > 0) {
+	#int val = *src++;
+	#*dest++ = val;
+	#result ^= val;
+	#len--;
+    #}
+    #return result;
+#}
+
+.pos 0
+
+init:
+  irmovl Stack, %esp
+  irmovl Stack, %ebp
+  jmp Main
+
+.align 4
+# Source block
+src:
+  .long 0x00a
+  .long 0x0b0
+  .long 0xc00
+
+# Source block
+dest:
+  .long 0x111
+  .long 0x222
+  .long 0x333
+
+Main:
+  irmovl src, %edx
+  pushl %edx          # push source onto parameter stack
+  irmovl dest, %edx
+  pushl %edx          # push destination onto parameter stack
+  irmovl $3, %edx
+  pushl %edx          # push length onto parameter stack
+  call copy_block
+  halt
+
+copy_block:
+  pushl %ebp
+  rrmovl %esp, %ebp
+  mrmovl 8(%ebp), %edx    # edx = int len 
+  mrmovl 12(%ebp), %ecx   # ecx = int * dest
+  mrmovl 16(%ebp), %ebx   # ebx = int * src 
+  irmovl $0, %eax         # eax = result = 0
+
+cmp:
+  pushl %edx
+  irmovl $0, %edi
+  subl %edi, %edx         # set condition
+  popl %edx
+  je end
+
+loop:
+  mrmovl (%ebx), %esi     # val = esi = *ebx
+  irmovl $4, %edi
+  addl %edi, %ebx         # increment ebx to the next address
+
+  rmmovl %esi,(%ecx)      # *dest = (%exc) = val
+  addl %edi, %ecx         # increment ecx to the next address
+
+  xorl %eax, %esi         # eax = result ^= val
+
+  irmovl $1, %edi
+  subl %edi, %edx         # decrement the len value
+
+  jmp cmp
+
+end:
+  rrmovl %ebp, %esp
+  popl %ebp
+  ret
+
+.pos 0x100
+Stack:

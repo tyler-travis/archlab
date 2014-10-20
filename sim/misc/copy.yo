@@ -1,0 +1,84 @@
+                      | # Tyler Travis A01519795
+                      | # Tyler Tolman A01307949
+                      | 
+                      | 
+                      | 
+                      | #int copy_block(int *src, int *dest, int len)
+                      | #{
+                      |     #int result = 0;
+                      |     #while (len > 0) {
+                      | 	#int val = *src++;
+                      | 	#*dest++ = val;
+                      | 	#result ^= val;
+                      | 	#len--;
+                      |     #}
+                      |     #return result;
+                      | #}
+                      | 
+  0x000:              | .pos 0
+                      | 
+  0x000:              | init:
+  0x000: 308400010000 |   irmovl Stack, %esp
+  0x006: 308500010000 |   irmovl Stack, %ebp
+  0x00c: 702c000000   |   jmp Main
+                      | 
+  0x014:              | .align 4
+                      | # Source block
+  0x014:              | src:
+  0x014: 0a000000     |   .long 0x00a
+  0x018: b0000000     |   .long 0x0b0
+  0x01c: 000c0000     |   .long 0xc00
+                      | 
+                      | # Source block
+  0x020:              | dest:
+  0x020: 11010000     |   .long 0x111
+  0x024: 22020000     |   .long 0x222
+  0x028: 33030000     |   .long 0x333
+                      | 
+  0x02c:              | Main:
+  0x02c: 308214000000 |   irmovl src, %edx
+  0x032: a028         |   pushl %edx          # push source onto parameter stack
+  0x034: 308220000000 |   irmovl dest, %edx
+  0x03a: a028         |   pushl %edx          # push destination onto parameter stack
+  0x03c: 308203000000 |   irmovl $3, %edx
+  0x042: a028         |   pushl %edx          # push length onto parameter stack
+  0x044: 804a000000   |   call copy_block
+  0x049: 10           |   halt
+                      | 
+  0x04a:              | copy_block:
+  0x04a: a058         |   pushl %ebp
+  0x04c: 2045         |   rrmovl %esp, %ebp
+  0x04e: 502508000000 |   mrmovl 8(%ebp), %edx    # edx = int len 
+  0x054: 50150c000000 |   mrmovl 12(%ebp), %ecx   # ecx = int * dest
+  0x05a: 503510000000 |   mrmovl 16(%ebp), %ebx   # ebx = int * src 
+  0x060: 308000000000 |   irmovl $0, %eax         # eax = result = 0
+                      | 
+  0x066:              | cmp:
+  0x066: a028         |   pushl %edx
+  0x068: 308700000000 |   irmovl $0, %edi
+  0x06e: 6172         |   subl %edi, %edx         # set condition
+  0x070: b028         |   popl %edx
+  0x072: 739c000000   |   je end
+                      | 
+  0x077:              | loop:
+  0x077: 506300000000 |   mrmovl (%ebx), %esi     # val = esi = *ebx
+  0x07d: 308704000000 |   irmovl $4, %edi
+  0x083: 6073         |   addl %edi, %ebx         # increment ebx to the next address
+                      | 
+  0x085: 406100000000 |   rmmovl %esi,(%ecx)      # *dest = (%exc) = val
+  0x08b: 6071         |   addl %edi, %ecx         # increment ecx to the next address
+                      | 
+  0x08d: 6306         |   xorl %eax, %esi         # eax = result ^= val
+                      | 
+  0x08f: 308701000000 |   irmovl $1, %edi
+  0x095: 6172         |   subl %edi, %edx         # decrement the len value
+                      | 
+  0x097: 7066000000   |   jmp cmp
+                      | 
+  0x09c:              | end:
+  0x09c: 2054         |   rrmovl %ebp, %esp
+  0x09e: b058         |   popl %ebp
+  0x0a0: 90           |   ret
+                      | 
+  0x100:              | .pos 0x100
+  0x100:              | Stack:
