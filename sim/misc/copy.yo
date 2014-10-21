@@ -68,7 +68,7 @@
   0x085: 406100000000 |   rmmovl %esi,(%ecx)      # *dest = (%exc) = val
   0x08b: 6071         |   addl %edi, %ecx         # increment ecx to the next address
                       | 
-  0x08d: 6306         |   xorl %eax, %esi         # eax = result ^= val
+  0x08d: 6360         |   xorl %esi, %eax         # eax = result ^= val
                       | 
   0x08f: 308701000000 |   irmovl $1, %edi
   0x095: 6172         |   subl %edi, %edx         # decrement the len value

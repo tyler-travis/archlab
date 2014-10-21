@@ -20,6 +20,8 @@
                       | # Return the number of positive ints (>0) contained in src.
                       | #
                       | # Include your name and ID here.
+                      | # Tyler Travis - A01519795
+                      | # Tyler Tolman - A01307949
                       | #
                       | # Describe how and why you modified the baseline code.
                       | #
@@ -42,15 +44,13 @@
   0x04d: 500300000000 | Loop:	mrmovl (%ebx), %eax	# read val from src...
   0x053: 400100000000 | 	rmmovl %eax, (%ecx)	# ...and store it to dst
   0x059: 6200         | 	andl %eax, %eax		# val <= 0?
-  0x05b: 7168000000   | 	jle Npos		# if so, goto Npos:
-  0x060: 308701000000 | 	irmovl $1, %edi
-  0x066: 6076         | 	addl %edi, %esi		# count++
-  0x068: 308701000000 | Npos:	irmovl $1, %edi
-  0x06e: 6172         | 	subl %edi, %edx		# len--
-  0x070: 308704000000 | 	irmovl $4, %edi
-  0x076: 6073         | 	addl %edi, %ebx		# src++
-  0x078: 6071         | 	addl %edi, %ecx		# dst++
-  0x07a: 6222         | 	andl %edx,%edx		# len > 0?
+  0x05b: 7166000000   | 	jle Npos		# if so, goto Npos:
+  0x060: c08601000000 | 	iaddl $1, %esi		# count++
+  0x066: 308701000000 | Npos:	irmovl $1, %edi
+  0x06c: 6172         | 	subl %edi, %edx		# len--
+  0x06e: c08304000000 | 	iaddl $4, %ebx		# src++
+  0x074: c08104000000 | 	iaddl $4, %ecx		# dst++
+  0x07a: 6222         | 	andl %edx, %edx		# len > 0?
   0x07c: 764d000000   | 	jg Loop			# if so, goto Loop:
                       | 
                       | 	# Function epilogue. Do not modify.

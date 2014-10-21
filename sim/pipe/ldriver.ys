@@ -20,6 +20,8 @@ main:	irmovl Stack, %esp  	# Set up stack pointer
 # Return the number of positive ints (>0) contained in src.
 #
 # Include your name and ID here.
+# Tyler Travis - A01519795
+# Tyler Tolman - A01307949
 #
 # Describe how and why you modified the baseline code.
 #
@@ -43,14 +45,12 @@ Loop:	mrmovl (%ebx), %eax	# read val from src...
 	rmmovl %eax, (%ecx)	# ...and store it to dst
 	andl %eax, %eax		# val <= 0?
 	jle Npos		# if so, goto Npos:
-	irmovl $1, %edi
-	addl %edi, %esi		# count++
+	iaddl $1, %esi		# count++
 Npos:	irmovl $1, %edi
 	subl %edi, %edx		# len--
-	irmovl $4, %edi
-	addl %edi, %ebx		# src++
-	addl %edi, %ecx		# dst++
-	andl %edx,%edx		# len > 0?
+	iaddl $4, %ebx		# src++
+	iaddl $4, %ecx		# dst++
+	andl %edx, %edx		# len > 0?
 	jg Loop			# if so, goto Loop:
 
 	# Function epilogue. Do not modify.

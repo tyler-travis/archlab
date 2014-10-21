@@ -9,6 +9,34 @@
 ## The file contains a declaration of the icodes
 ## for iaddl (IIADDL) and leave (ILEAVE).
 ## Your job is to add the rest of the logic to make it work
+#
+#
+# Tyler Travis - A01519795
+# Tyler Tolman - A01307949
+#
+####################################################################
+#               iaddl                         leave
+####################################################################
+# Fetch         icode:ifun <- M1[PC]          icode:ifun <- M1[PC] 
+#               rA:rB <- M1[PC+1]
+#               rC <- M4[PC+2]
+#
+#               valP <- PC+6                  valP <- PC+1
+# 
+# Decode        valB <- R[rB]                 valA <- RESP
+#                                             valB <- REBP
+#
+# Execute       ValE <- ValB + ValC           ValE <- REBP + 4
+#               Set CC
+#
+# Memory                                      ValM <- M4[ValA]
+#
+# Write Back    R[rB] <- ValE                 R[RESP] <- ValE
+#                                             R[REBP] <- ValM
+#
+# PC update     PC <- ValP                    PC <- ValP
+#
+####################################################################
 
 ####################################################################
 #    C Include's.  Don't alter these                               #
@@ -85,15 +113,15 @@ intsig valM	'valm'			# Value read from memory
 # Does fetched instruction require a regid byte?
 bool need_regids =
 	icode in { IRRMOVL, IOPL, IPUSHL, IPOPL, 
-		     IIRMOVL, IRMMOVL, IMRMOVL };
+		     IIRMOVL, IRMMOVL, IMRMOVL, IIADDL };
 
 # Does fetched instruction require a constant word?
 bool need_valC =
-	icode in { IIRMOVL, IRMMOVL, IMRMOVL, IJXX, ICALL };
+	icode in { IIRMOVL, IRMMOVL, IMRMOVL, IJXX, ICALL, IIADDL };
 
 bool instr_valid = icode in 
 	{ INOP, IHALT, IRRMOVL, IIRMOVL, IRMMOVL, IMRMOVL,
-	       IOPL, IJXX, ICALL, IRET, IPUSHL, IPOPL };
+	       IOPL, IJXX, ICALL, IRET, IPUSHL, IPOPL, IIADDL, ILEAVE };
 
 ################ Decode Stage    ###################################
 
@@ -101,26 +129,29 @@ bool instr_valid = icode in
 int srcA = [
 	icode in { IRRMOVL, IRMMOVL, IOPL, IPUSHL  } : rA;
 	icode in { IPOPL, IRET } : RESP;
+        icode == ILEAVE : REBP;
 	1 : RNONE; # Don't need register
 ];
 
 ## What register should be used as the B source?
 int srcB = [
-	icode in { IOPL, IRMMOVL, IMRMOVL  } : rB;
+	icode in { IOPL, IRMMOVL, IMRMOVL, IIADDL } : rB;
 	icode in { IPUSHL, IPOPL, ICALL, IRET } : RESP;
+        icode == ILEAVE : REBP;
 	1 : RNONE;  # Don't need register
 ];
 
 ## What register should be used as the E destination?
 int dstE = [
-	icode in { IRRMOVL, IIRMOVL, IOPL} : rB;
-	icode in { IPUSHL, IPOPL, ICALL, IRET } : RESP;
+	icode in { IRRMOVL, IIRMOVL, IOPL, IIADDL } : rB;
+	icode in { IPUSHL, IPOPL, ICALL, IRET, ILEAVE } : RESP;
 	1 : RNONE;  # Don't need register
 ];
 
 ## What register should be used as the M destination?
 int dstM = [
 	icode in { IMRMOVL, IPOPL } : rA;
+        icode == ILEAVE : REBP;
 	1 : RNONE;  # Don't need register
 ];
 
@@ -129,16 +160,16 @@ int dstM = [
 ## Select input A to ALU
 int aluA = [
 	icode in { IRRMOVL, IOPL } : valA;
-	icode in { IIRMOVL, IRMMOVL, IMRMOVL } : valC;
+	icode in { IIRMOVL, IRMMOVL, IMRMOVL, IIADDL } : valC;
 	icode in { ICALL, IPUSHL } : -4;
-	icode in { IRET, IPOPL } : 4;
+	icode in { IRET, IPOPL, ILEAVE } : 4;
 	# Other instructions don't need ALU
 ];
 
 ## Select input B to ALU
 int aluB = [
 	icode in { IRMMOVL, IMRMOVL, IOPL, ICALL, 
-		      IPUSHL, IRET, IPOPL } : valB;
+		      IPUSHL, IRET, IPOPL, IIADDL, ILEAVE } : valB;
 	icode in { IRRMOVL, IIRMOVL } : 0;
 	# Other instructions don't need ALU
 ];
@@ -150,12 +181,12 @@ int alufun = [
 ];
 
 ## Should the condition codes be updated?
-bool set_cc = icode in { IOPL };
+bool set_cc = icode in { IOPL, IIADDL };
 
 ################ Memory Stage    ###################################
 
 ## Set read control signal
-bool mem_read = icode in { IMRMOVL, IPOPL, IRET };
+bool mem_read = icode in { IMRMOVL, IPOPL, IRET, ILEAVE };
 
 ## Set write control signal
 bool mem_write = icode in { IRMMOVL, IPUSHL, ICALL };
@@ -163,7 +194,7 @@ bool mem_write = icode in { IRMMOVL, IPUSHL, ICALL };
 ## Select memory address
 int mem_addr = [
 	icode in { IRMMOVL, IPUSHL, ICALL, IMRMOVL } : valE;
-	icode in { IPOPL, IRET } : valA;
+	icode in { IPOPL, IRET, ILEAVE } : valA;
 	# Other instructions don't need address
 ];
 

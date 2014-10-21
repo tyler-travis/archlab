@@ -68,7 +68,7 @@ loop:
   rmmovl %esi,(%ecx)      # *dest = (%exc) = val
   addl %edi, %ecx         # increment ecx to the next address
 
-  xorl %eax, %esi         # eax = result ^= val
+  xorl %esi, %eax         # eax = result ^= val
 
   irmovl $1, %edi
   subl %edi, %edx         # decrement the len value
