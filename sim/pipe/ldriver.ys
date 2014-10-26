@@ -31,30 +31,105 @@ ncopy:	pushl %ebp		# Save old frame pointer
 	rrmovl %esp,%ebp	# Set up new frame pointer
 	pushl %esi		# Save callee-save regs
 	pushl %ebx
+        pushl %edi
 	mrmovl 8(%ebp),%ebx	# src
 	mrmovl 12(%ebp),%ecx	# dst
 	mrmovl 16(%ebp),%edx	# len
 
 	# Loop header
-	xorl %esi,%esi		# count = 0;
+	xorl %eax,%eax		# count = 0;
 	andl %edx,%edx		# len <= 0?
 	jle Done		# if so, goto Done:
+        iaddl $-6, %edx         # len = len - 6
+        jl End1
 
 	# Loop body.
-Loop:	mrmovl (%ebx), %eax	# read val from src...
-	rmmovl %eax, (%ecx)	# ...and store it to dst
-	andl %eax, %eax		# val <= 0?
-	jle Npos		# if so, goto Npos:
-	iaddl $1, %esi		# count++
-Npos:	irmovl $1, %edi
-	subl %edi, %edx		# len--
-	iaddl $4, %ebx		# src++
-	iaddl $4, %ecx		# dst++
-	andl %edx, %edx		# len > 0?
-	jg Loop			# if so, goto Loop:
+Loop:	mrmovl (%ebx), %esi	# read val from src
+        mrmovl 4(%ebx), %edi    # read val from src + 4
+	rmmovl %esi, (%ecx)	# move src[0] to dest[0]
+	andl %esi, %esi		# val <= 0?
+	jle Pos1		# if so, goto Pos1:
+	iaddl $1, %eax		# count++
+
+Pos1:	rmmovl %edi, 4(%ecx)    # move src[1] to dest[1]
+        andl %edi, %edi         # src[1] > 0?
+        jle Pos2                # if not get next element
+        iaddl $1, %eax          # count++
+
+Pos2:	mrmovl 8(%ebx), %esi	# read val from src + 8
+        mrmovl 12(%ebx), %edi   # read val from src + 12
+	rmmovl %esi, 8(%ecx)	# move src[2] to dest[2]
+	andl %esi, %esi		# src[2] > 0
+	jle Pos3		# if not goto Pos3
+	iaddl $1, %eax		# count++
+
+Pos3:	rmmovl %edi, 12(%ecx)   # move src[3] to dest[3]
+        andl %edi, %edi         # src[3] > 0?
+        jle Pos4                # if not get next element
+        iaddl $1, %eax          # count++
+
+Pos4:	mrmovl 16(%ebx), %esi	# read val from src + 16 
+        mrmovl 20(%ebx), %edi   # read val from src + 20
+	rmmovl %esi, 16(%ecx)	# move src[4] to dest[4]
+	andl %esi, %esi		# src[4] > 0
+	jle Pos5		# if not goto Pos5
+	iaddl $1, %eax		# count++
+
+Pos5:	rmmovl %edi, 20(%ecx)   # move src[5] to dest[5]
+        andl %edi, %edi         # src[5] > 0?
+        jle Pos6                # if not get next element
+        iaddl $1, %eax          # count++
+
+Pos6:   iaddl $24, %ebx         # go to next 6 positions for src
+        iaddl $24, %ecx         # go to next 6 positions for dest
+        iaddl $-6, %edx         # len = len - 6
+        jge Loop                # if 6 left, loop again
+
+End1:   iaddl $6, %edx          # restore length
+        iaddl $-1, %edx         # len = len - 1
+        jl Done
+        mrmovl (%ebx), %esi     # read val from src
+        mrmovl 4(%ebx), %edi    # read val from src + 4
+        rmmovl %esi, (%ecx)     # move src[0] to dest[0]
+        andl %esi, %esi         # src[0] > 0?
+        jle End2                # if so, goto End2
+        iaddl $1, %eax          # count++
+
+End2:   iaddl $-1, %edx         # len = len - 1
+        jl Done
+        rmmovl %edi, 4(%ecx)    # move src[1] to dest[1]
+        andl %esi, %esi         # src[1] > 0?
+        jle End3                # if so, goto End3
+        iaddl $1, %eax          # count++
+
+End3:   iaddl $-1, %edx
+        jl Done
+        mrmovl 8(%ebx), %esi    # read val from src + 8
+        mrmovl 12(%ebx), %edi   # read val from src + 12
+        rmmovl %esi, 8(%ecx)    # move src[2] to dest[2]
+        andl %esi, %esi         # src[2] > 0?
+        jle End4                # if so, goto End4
+        iaddl $1, %eax          # count++
+
+End4:   iaddl $-1, %edx         # len = len - 1
+        jl Done
+        rmmovl %edi, 12(%ecx)   # move src[3] to dest[3]
+        andl %esi, %esi         # src[3] > 0?
+        jle End5                # if so, goto End5
+        iaddl $1, %eax          # count++
+
+End5:   iaddl $-1, %edx
+        jl Done
+        mrmovl 16(%ebx), %esi   # read val from src + 16 
+        rmmovl %esi, 16(%ecx)   # move src[4] to dest[4]
+        andl %esi, %esi         # src[4] > 0?
+        jle Done                # if so, goto Done
+        iaddl $1, %eax          # count++
+
+
 
 	# Function epilogue. Do not modify.
-Done:	rrmovl %esi, %eax
+Done:   popl %edi
 	popl %ebx
 	popl %esi
 	rrmovl %ebp, %esp
